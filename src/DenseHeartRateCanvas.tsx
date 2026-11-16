@@ -34,6 +34,7 @@ export interface DenseHeartRateCanvasProps {
 
 const MARGIN = { top: 8, right: 12, bottom: 24, left: 40 };
 const WHEEL_ZOOM_SPEED = 0.0015;
+const LINE_HEIGHT = 16;
 const KEY_PAN_FRACTION = 0.1;
 
 interface Frame {
@@ -167,19 +168,14 @@ export function DenseHeartRateCanvas({
     if (!canvas) return;
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
+      if (plotWidth === 0) return;
+      // Some browsers report mouse wheels in lines rather than pixels.
+      const scale = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? LINE_HEIGHT : 1;
       const anchor = x.invert(event.clientX - canvas.getBoundingClientRect().left);
-      const next = zoomDomain(
-        domain,
-        bounds,
-        anchor,
-        Math.exp(event.deltaY * WHEEL_ZOOM_SPEED),
-        minSpanMs,
-      );
-      setDomain(
-        event.deltaX
-          ? panDomain(next, bounds, (event.deltaX / plotWidth) * (next[1] - next[0]))
-          : next,
-      );
+      const factor = Math.exp(event.deltaY * scale * WHEEL_ZOOM_SPEED);
+      const zoomed = zoomDomain(domain, bounds, anchor, factor, minSpanMs);
+      const shift = ((event.deltaX * scale) / plotWidth) * (zoomed[1] - zoomed[0]);
+      setDomain(panDomain(zoomed, bounds, shift));
     };
     canvas.addEventListener('wheel', onWheel, { passive: false });
     return () => {
