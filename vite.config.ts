@@ -9,7 +9,6 @@ export default defineConfig({
       formats: ['es'],
       fileName: 'health-charts',
     },
-    emptyOutDir: false,
     rolldownOptions: {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
     },
