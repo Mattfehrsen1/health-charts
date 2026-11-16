@@ -26,10 +26,11 @@ export function scaleLinear(
 }
 
 /** Smallest and largest finite value, or undefined when there are none. */
-export function extent(values: Iterable<number>): [number, number] | undefined {
+export function extent(values: ArrayLike<number>): [number, number] | undefined {
   let min = Infinity;
   let max = -Infinity;
-  for (const value of values) {
+  for (let i = 0; i < values.length; i++) {
+    const value = values[i] as number;
     if (!Number.isFinite(value)) continue;
     if (value < min) min = value;
     if (value > max) max = value;

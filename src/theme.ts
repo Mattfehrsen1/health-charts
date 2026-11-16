@@ -5,11 +5,17 @@ import type { SleepStage } from './core/sleep';
  * Every color is a CSS custom property with a fallback, so charts work
  * unstyled and can be themed (including dark mode) from plain CSS.
  */
+const fallbacks = {
+  line: '#e5484d',
+  muted: '#6e7781',
+  grid: 'rgba(110, 119, 129, 0.2)',
+};
+
 export const colors = {
-  line: 'var(--hc-line, #e5484d)',
+  line: `var(--hc-line, ${fallbacks.line})`,
   text: 'var(--hc-text, #1f2328)',
-  muted: 'var(--hc-muted, #6e7781)',
-  grid: 'var(--hc-grid, rgba(110, 119, 129, 0.2))',
+  muted: `var(--hc-muted, ${fallbacks.muted})`,
+  grid: `var(--hc-grid, ${fallbacks.grid})`,
   surface: 'var(--hc-surface, #ffffff)',
   track: 'var(--hc-track, rgba(110, 119, 129, 0.18))',
   strain: 'var(--hc-strain, #0b84f3)',
@@ -27,6 +33,11 @@ export const colors = {
     deep: 'var(--hc-deep, #5f3dc4)',
   } satisfies Record<SleepStage, string>,
 } as const;
+
+/** Canvas cannot use `var()`, so it resolves the same tokens from computed style. */
+export function resolveColor(element: Element, name: keyof typeof fallbacks): string {
+  return getComputedStyle(element).getPropertyValue(`--hc-${name}`).trim() || fallbacks[name];
+}
 
 export const visuallyHidden: CSSProperties = {
   position: 'absolute',

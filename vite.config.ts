@@ -10,7 +10,7 @@ export default defineConfig({
       fileName: 'health-charts',
     },
     emptyOutDir: false,
-    rollupOptions: {
+    rolldownOptions: {
       external: ['react', 'react/jsx-runtime', 'react-dom'],
     },
   },

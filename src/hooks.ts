@@ -46,3 +46,30 @@ export function usePrefersReducedMotion(): boolean {
     () => false,
   );
 }
+
+function subscribeToPixelRatio(onChange: () => void) {
+  // A resolution query only fires when the ratio moves away from the value it
+  // was created with, so re-arm it with the new ratio after every change.
+  let query: MediaQueryList;
+  const handleChange = () => {
+    listen();
+    onChange();
+  };
+  const listen = () => {
+    query = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+    query.addEventListener('change', handleChange, { once: true });
+  };
+  listen();
+  return () => {
+    query.removeEventListener('change', handleChange);
+  };
+}
+
+/** Re-renders when the window moves to a screen with a different pixel density, or on zoom. */
+export function useDevicePixelRatio(): number {
+  return useSyncExternalStore(
+    subscribeToPixelRatio,
+    () => window.devicePixelRatio || 1,
+    () => 1,
+  );
+}
