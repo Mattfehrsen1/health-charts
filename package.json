@@ -25,10 +25,11 @@
     "preview:demo": "vite preview --config demo/vite.config.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --grep-invert @docs",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "docs:screenshots": "playwright test --grep @docs"
   },
   "peerDependencies": {
     "react": "^18.2.0",
