@@ -2,6 +2,8 @@
 
 Small React + TypeScript chart components for health data, drawn with hand-written SVG and Canvas 2D. No charting library, no d3: scales, ticks, decimation and path building are a few hundred lines of plain, unit-tested functions.
 
+**Live demo:** https://health-charts.pages.dev
+
 | Component              | Renders | What it shows                                                                                                    |
 | ---------------------- | ------- | ---------------------------------------------------------------------------------------------------------------- |
 | `HeartRateChart`       | SVG     | Heart rate over time with shaded zones, crosshair tooltip, arrow-key navigation and a live region                |
