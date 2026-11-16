@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { scaleLinear } from './scale';
+import { extent, scaleLinear } from './scale';
 
 describe('scaleLinear', () => {
   it('maps domain to range and back', () => {
@@ -32,5 +32,17 @@ describe('scaleLinear', () => {
 
   it('inverts a zero-width range to the domain start', () => {
     expect(scaleLinear([0, 10], [20, 20]).invert(20)).toBe(0);
+  });
+});
+
+describe('extent', () => {
+  it('ignores non-finite values', () => {
+    expect(extent([3, NaN, 1, Infinity, 7])).toEqual([1, 7]);
+    expect(extent(new Float32Array([5]))).toEqual([5, 5]);
+  });
+
+  it('is undefined when nothing is finite', () => {
+    expect(extent([])).toBeUndefined();
+    expect(extent([NaN, -Infinity])).toBeUndefined();
   });
 });

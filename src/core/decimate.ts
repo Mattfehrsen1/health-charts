@@ -23,6 +23,14 @@ export function lowerBound(sorted: NumericArray, target: number): number {
   return lo;
 }
 
+/** Index of the element of a sorted, non-empty array closest to `target`. */
+export function nearestIndex(sorted: NumericArray, target: number): number {
+  const i = lowerBound(sorted, target);
+  if (i === 0) return 0;
+  if (i === sorted.length) return i - 1;
+  return target - (sorted[i - 1] as number) <= (sorted[i] as number) - target ? i - 1 : i;
+}
+
 /**
  * Min/max (M4) decimation: reduces samples in [start, end] to at most one
  * bucket per pixel column, keeping each column's first, last, minimum and

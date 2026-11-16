@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decimateMinMax, lowerBound } from './decimate';
+import { decimateMinMax, lowerBound, nearestIndex } from './decimate';
 
 describe('lowerBound', () => {
   it('finds the first index not less than the target', () => {
@@ -9,6 +9,18 @@ describe('lowerBound', () => {
     expect(lowerBound(sorted, 4)).toBe(3);
     expect(lowerBound(sorted, 9)).toBe(4);
     expect(lowerBound([], 1)).toBe(0);
+  });
+});
+
+describe('nearestIndex', () => {
+  it('picks the closest element, preferring the earlier one on ties', () => {
+    const sorted = [0, 10, 20];
+    expect(nearestIndex(sorted, -5)).toBe(0);
+    expect(nearestIndex(sorted, 4)).toBe(0);
+    expect(nearestIndex(sorted, 5)).toBe(0);
+    expect(nearestIndex(sorted, 6)).toBe(1);
+    expect(nearestIndex(sorted, 99)).toBe(2);
+    expect(nearestIndex([42], 0)).toBe(0);
   });
 });
 

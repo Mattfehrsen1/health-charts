@@ -24,3 +24,15 @@ export function scaleLinear(
 
   return Object.assign(scale, { domain, range, invert });
 }
+
+/** Smallest and largest finite value, or undefined when there are none. */
+export function extent(values: Iterable<number>): [number, number] | undefined {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const value of values) {
+    if (!Number.isFinite(value)) continue;
+    if (value < min) min = value;
+    if (value > max) max = value;
+  }
+  return min <= max ? [min, max] : undefined;
+}
