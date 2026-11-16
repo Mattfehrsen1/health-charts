@@ -66,7 +66,7 @@ function draw(canvas: HTMLCanvasElement, pixelRatio: number, frame: Frame) {
   ctx.lineWidth = 1;
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
-  for (const tick of niceTicks(y.domain[0], y.domain[1], 4)) {
+  for (const tick of niceTicks(y.domain[0], y.domain[1], 5)) {
     // Half-pixel offset keeps 1px lines crisp at a ratio of 1.
     const py = Math.round(y(tick)) + 0.5;
     ctx.beginPath();
@@ -139,7 +139,7 @@ export function DenseHeartRateCanvas({
 
   const yDomain = useMemo(() => {
     const range = extent(values);
-    return range ? niceDomain(range[0], range[1], 4) : ([0, 1] as const);
+    return range ? niceDomain(range[0], range[1], 5) : ([0, 1] as const);
   }, [values]);
 
   const plotWidth = Math.max(0, width - MARGIN.left - MARGIN.right);

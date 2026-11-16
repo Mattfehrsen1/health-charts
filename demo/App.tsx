@@ -92,7 +92,12 @@ export function App() {
 
       <div className="grid">
         <Card id="heart-rate" title="Workout heart rate">
-          <HeartRateChart data={workout} maxHeartRate={190} label="Workout heart rate" />
+          <HeartRateChart
+            data={workout}
+            maxHeartRate={190}
+            maxGapMs={30_000}
+            label="Workout heart rate"
+          />
         </Card>
         <Card id="strain" title="Day strain">
           <div className="center">
