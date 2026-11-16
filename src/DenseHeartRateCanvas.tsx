@@ -50,8 +50,11 @@ function draw(canvas: HTMLCanvasElement, pixelRatio: number, frame: Frame) {
   const { width, height, x, y, buckets, gapMs } = frame;
   // The backing store is sized in device pixels; the transform lets every
   // drawing call below work in CSS pixels.
-  canvas.width = Math.round(width * pixelRatio);
-  canvas.height = Math.round(height * pixelRatio);
+  const backingWidth = Math.round(width * pixelRatio);
+  const backingHeight = Math.round(height * pixelRatio);
+  // Assigning a size reallocates the backing store, so only do it on change.
+  if (canvas.width !== backingWidth) canvas.width = backingWidth;
+  if (canvas.height !== backingHeight) canvas.height = backingHeight;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
   ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
@@ -124,6 +127,8 @@ export function DenseHeartRateCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pixelRatio = useDevicePixelRatio();
   const helpId = useId();
+  // Announce the new window after keyboard moves only; dragging would flood the screen reader.
+  const [announce, setAnnounce] = useState(false);
 
   const bounds = useMemo<Domain>(() => [times[0] ?? 0, times[times.length - 1] ?? 0], [times]);
   const [ownDomain, setOwnDomain] = useState<Domain>(bounds);
@@ -162,6 +167,13 @@ export function DenseHeartRateCanvas({
     if (canvas && width > 0) draw(canvas, pixelRatio, { width, height, x, y, buckets, gapMs });
   }, [width, height, x, y, buckets, gapMs, pixelRatio]);
 
+  // Wheel events can arrive faster than React re-renders, so each one builds
+  // on the most recently requested domain rather than the last rendered one.
+  const latestDomain = useRef(domain);
+  useLayoutEffect(() => {
+    latestDomain.current = domain;
+  }, [domain]);
+
   // React registers wheel listeners as passive, which cannot prevent the page from scrolling.
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -171,11 +183,16 @@ export function DenseHeartRateCanvas({
       if (plotWidth === 0) return;
       // Some browsers report mouse wheels in lines rather than pixels.
       const scale = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? LINE_HEIGHT : 1;
-      const anchor = x.invert(event.clientX - canvas.getBoundingClientRect().left);
+      const current = latestDomain.current;
+      const span = current[1] - current[0];
+      const offsetX = event.clientX - canvas.getBoundingClientRect().left - MARGIN.left;
+      const anchor = current[0] + (offsetX / plotWidth) * span;
       const factor = Math.exp(event.deltaY * scale * WHEEL_ZOOM_SPEED);
-      const zoomed = zoomDomain(domain, bounds, anchor, factor, minSpanMs);
+      const zoomed = zoomDomain(current, bounds, anchor, factor, minSpanMs);
       const shift = ((event.deltaX * scale) / plotWidth) * (zoomed[1] - zoomed[0]);
-      setDomain(panDomain(zoomed, bounds, shift));
+      const next = panDomain(zoomed, bounds, shift);
+      latestDomain.current = next;
+      setDomain(next);
     };
     canvas.addEventListener('wheel', onWheel, { passive: false });
     return () => {
@@ -186,6 +203,8 @@ export function DenseHeartRateCanvas({
   const drag = useRef<{ pointerX: number; domain: Domain } | null>(null);
 
   const onPointerDown = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (event.button !== 0) return;
+    setAnnounce(false);
     event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = { pointerX: event.clientX, domain };
   };
@@ -201,27 +220,42 @@ export function DenseHeartRateCanvas({
     drag.current = null;
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+  const keyboardDomain = (key: string): [number, number] | undefined => {
     const span = domain[1] - domain[0];
     const center = domain[0] + span / 2;
-    const actions: Record<string, () => [number, number]> = {
-      ArrowLeft: () => panDomain(domain, bounds, -span * KEY_PAN_FRACTION),
-      ArrowRight: () => panDomain(domain, bounds, span * KEY_PAN_FRACTION),
-      '+': () => zoomDomain(domain, bounds, center, 0.5, minSpanMs),
-      '=': () => zoomDomain(domain, bounds, center, 0.5, minSpanMs),
-      '-': () => zoomDomain(domain, bounds, center, 2, minSpanMs),
-      '0': () => [bounds[0], bounds[1]],
-    };
-    const action = actions[event.key];
-    if (!action) return;
-    event.preventDefault();
-    setDomain(action());
+    switch (key) {
+      case 'ArrowLeft':
+        return panDomain(domain, bounds, -span * KEY_PAN_FRACTION);
+      case 'ArrowRight':
+        return panDomain(domain, bounds, span * KEY_PAN_FRACTION);
+      case '+':
+      case '=':
+        return zoomDomain(domain, bounds, center, 0.5, minSpanMs);
+      case '-':
+        return zoomDomain(domain, bounds, center, 2, minSpanMs);
+      case '0':
+        return [bounds[0], bounds[1]];
+      default:
+        return undefined;
+    }
   };
 
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const next = keyboardDomain(event.key);
+    if (!next) return;
+    event.preventDefault();
+    setDomain(next);
+    setAnnounce(true);
+  };
+
+  let low = Infinity;
+  let high = -Infinity;
+  for (const bucket of buckets) {
+    low = Math.min(low, bucket.min);
+    high = Math.max(high, bucket.max);
+  }
   const visible = buckets.length
-    ? `${formatTime(domain[0])} to ${formatTime(domain[1])}, ` +
-      `${Math.round(Math.min(...buckets.map((b) => b.min)))} to ` +
-      `${Math.round(Math.max(...buckets.map((b) => b.max)))} bpm`
+    ? `${formatTime(domain[0])} to ${formatTime(domain[1])}, ${Math.round(low)} to ${Math.round(high)} bpm`
     : 'no readings in view';
 
   return (
@@ -229,7 +263,7 @@ export function DenseHeartRateCanvas({
       ref={containerRef}
       className={className}
       role="group"
-      aria-label={label}
+      aria-label={`${label}: ${visible}`}
       aria-describedby={helpId}
       tabIndex={0}
       onKeyDown={onKeyDown}
@@ -239,10 +273,12 @@ export function DenseHeartRateCanvas({
         Drag or use the left and right arrow keys to pan. Scroll or press plus and minus to zoom,
         and 0 to reset.
       </p>
+      <div aria-live="polite" style={visuallyHidden}>
+        {announce && visible}
+      </div>
       <canvas
         ref={canvasRef}
-        role="img"
-        aria-label={`${label}: ${visible}`}
+        aria-hidden="true"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}

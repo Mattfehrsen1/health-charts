@@ -71,7 +71,19 @@ describe('HeartRateChart', () => {
     expect(chart.querySelector('circle')).not.toBeNull();
     expect(screen.getByText('172 bpm')).toBeDefined();
 
+    expect(liveRegion(chart)).toBe('');
+
     fireEvent.pointerLeave(chart);
+    expect(chart.querySelector('circle')).toBeNull();
+  });
+
+  it('clears the selection when the data changes', () => {
+    const { rerender } = render(<HeartRateChart data={data} label="Live" />);
+    const chart = screen.getByRole('group', { name: 'Live' });
+    fireEvent.keyDown(chart, { key: 'End' });
+    expect(chart.querySelector('circle')).not.toBeNull();
+
+    rerender(<HeartRateChart data={data.slice(0, 3)} label="Live" />);
     expect(chart.querySelector('circle')).toBeNull();
   });
 

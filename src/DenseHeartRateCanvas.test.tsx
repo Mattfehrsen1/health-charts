@@ -45,8 +45,8 @@ describe('DenseHeartRateCanvas', () => {
   const renderCanvas = (props: Partial<Parameters<typeof DenseHeartRateCanvas>[0]> = {}) => {
     render(<DenseHeartRateCanvas times={times} values={values} height={200} {...props} />);
     return {
-      group: screen.getByRole('group', { name: 'Heart rate, full day' }),
-      canvas: screen.getByRole<HTMLCanvasElement>('img'),
+      group: screen.getByRole('group', { name: /^Heart rate, full day/ }),
+      canvas: document.querySelector('canvas') as HTMLCanvasElement,
     };
   };
 
@@ -71,10 +71,26 @@ describe('DenseHeartRateCanvas', () => {
   });
 
   it('summarises the visible window in its accessible name', () => {
-    const { canvas } = renderCanvas();
-    expect(canvas.getAttribute('aria-label')).toBe(
+    const { group } = renderCanvas();
+    expect(group.getAttribute('aria-label')).toBe(
       'Heart rate, full day: 00:00 to 23:59, 20 to 100 bpm',
     );
+  });
+
+  it('announces the new window after keyboard zoom', () => {
+    const { group } = renderCanvas();
+    const live = group.querySelector('[aria-live="polite"]');
+    expect(live?.textContent).toBe('');
+    fireEvent.keyDown(group, { key: '+' });
+    expect(live?.textContent).toMatch(/^05:59 to 17:59, \d+ to \d+ bpm$/);
+  });
+
+  it('ignores drags with buttons other than the primary one', () => {
+    const onDomainChange = vi.fn<(domain: [number, number]) => void>();
+    const { canvas } = renderCanvas({ domain: [start, start + fullSpan / 2], onDomainChange });
+    fireEvent.pointerDown(canvas, { clientX: 300, button: 2, pointerId: 1 });
+    fireEvent.pointerMove(canvas, { clientX: 200, pointerId: 1 });
+    expect(onDomainChange).not.toHaveBeenCalled();
   });
 
   it('zooms and pans with the keyboard', () => {

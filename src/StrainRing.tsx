@@ -26,6 +26,8 @@ function useAnimatedValue(target: number, duration: number): number {
   const animate = !reducedMotion && duration > 0;
   const [value, setValue] = useState(animate ? 0 : target);
   const displayed = useRef(value);
+  // Keep state in step while not animating, so a later animation starts from here.
+  if (!animate && value !== target) setValue(target);
 
   useEffect(() => {
     if (!animate) {

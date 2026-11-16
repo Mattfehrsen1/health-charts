@@ -38,6 +38,13 @@ export function HeartRateChart({
 }: HeartRateChartProps) {
   const [containerRef, { width }] = useElementSize<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
+  // Only keyboard moves are announced; hovering would flood the screen reader.
+  const [announce, setAnnounce] = useState(false);
+  const [previousData, setPreviousData] = useState(data);
+  if (data !== previousData) {
+    setPreviousData(data);
+    setActive(null);
+  }
   const summaryId = useId();
 
   const zones = useMemo(() => heartRateZones(maxHeartRate), [maxHeartRate]);
@@ -80,12 +87,14 @@ export function HeartRateChart({
     if (next === undefined) return;
     event.preventDefault();
     setActive(next);
+    setAnnounce(true);
   };
 
   const onPointerMove = (event: PointerEvent<SVGSVGElement>) => {
     if (data.length === 0) return;
     const offsetX = event.clientX - event.currentTarget.getBoundingClientRect().left;
     setActive(nearestIndex(times, x.invert(offsetX)));
+    setAnnounce(false);
   };
 
   const [minBpm, maxBpm] = y.domain;
@@ -202,7 +211,8 @@ export function HeartRateChart({
         </div>
       )}
       <div aria-live="polite" style={visuallyHidden}>
-        {activeSample &&
+        {announce &&
+          activeSample &&
           `${formatTime(activeSample.time)}, ${Math.round(activeSample.bpm)} bpm` +
             (activeZone ? `, ${activeZone.name}` : '')}
       </div>

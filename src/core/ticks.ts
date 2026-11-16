@@ -8,6 +8,19 @@ function tickStep(min: number, max: number, count: number): number {
   return factor * power;
 }
 
+/**
+ * The i-th multiple of `step`. Fractional steps divide by their inverse, so
+ * 0.1 + 0.2 style rounding error never leaks into tick values.
+ */
+function multiple(i: number, step: number): number {
+  return step < 1 ? i / Math.round(1 / step) : i * step;
+}
+
+/** Index of the multiple of `step` nearest to `value`. */
+function nearestMultiple(value: number, step: number): number {
+  return Math.round(value / step);
+}
+
 /** Round step values (1, 2, 5 × 10ⁿ) covering [min, max] with roughly `count` ticks. */
 export function niceTicks(min: number, max: number, count = 5): number[] {
   if (!Number.isFinite(min) || !Number.isFinite(max) || count <= 0) return [];
@@ -15,19 +28,13 @@ export function niceTicks(min: number, max: number, count = 5): number[] {
   if (min > max) return niceTicks(max, min, count).reverse();
 
   const step = tickStep(min, max, count);
-  // For fractional steps, work in multiples of 1/step so that 0.1 + 0.2 style
-  // rounding error never leaks into tick values or drops the last tick.
-  const inverse = step < 1 ? Math.round(1 / step) : 0;
-  const valueAt = (i: number) => (inverse ? i / inverse : i * step);
-  const indexOf = (value: number) => Math.round(inverse ? value * inverse : value / step);
-
-  let first = indexOf(min);
-  if (valueAt(first) < min) first++;
-  let last = indexOf(max);
-  if (valueAt(last) > max) last--;
+  let first = nearestMultiple(min, step);
+  if (multiple(first, step) < min) first++;
+  let last = nearestMultiple(max, step);
+  if (multiple(last, step) > max) last--;
 
   const ticks: number[] = [];
-  for (let i = first; i <= last; i++) ticks.push(valueAt(i));
+  for (let i = first; i <= last; i++) ticks.push(multiple(i, step));
   return ticks;
 }
 
@@ -35,7 +42,11 @@ export function niceTicks(min: number, max: number, count = 5): number[] {
 export function niceDomain(min: number, max: number, count = 5): [number, number] {
   if (!Number.isFinite(min) || !Number.isFinite(max) || min >= max) return [min, max];
   const step = tickStep(min, max, count);
-  return [Math.floor(min / step) * step, Math.ceil(max / step) * step];
+  let first = nearestMultiple(min, step);
+  if (multiple(first, step) > min) first--;
+  let last = nearestMultiple(max, step);
+  if (multiple(last, step) < max) last++;
+  return [multiple(first, step), multiple(last, step)];
 }
 
 const SECOND = 1_000;

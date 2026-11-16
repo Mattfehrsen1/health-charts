@@ -28,6 +28,7 @@ describe('niceDomain', () => {
   it('extends the domain to tick boundaries', () => {
     expect(niceDomain(43, 187, 5)).toEqual([40, 200]);
     expect(niceDomain(0.12, 0.88, 4)).toEqual([0, 1]);
+    expect(niceDomain(0.12, 0.31, 4)).toEqual([0.1, 0.35]);
   });
 
   it('leaves degenerate domains unchanged', () => {

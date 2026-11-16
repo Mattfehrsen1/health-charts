@@ -118,10 +118,10 @@ Other tokens: `--hc-track`, `--hc-strain`, `--hc-zone-1` to `--hc-zone-5`, `--hc
 
 ## Accessibility
 
-- `HeartRateChart` is a focusable group with a text summary. Arrow keys, Page Up/Down, Home and End move between readings; each one is announced through a polite live region (`"07:12, 164 bpm, Zone 4"`). Escape clears the selection.
+- `HeartRateChart` is a focusable group with a text summary. Arrow keys, Page Up/Down, Home and End move between readings; each keyboard move is announced through a polite live region (pointer hover is not, to avoid flooding the screen reader) (`"07:12, 164 bpm, Zone 4"`). Escape clears the selection.
 - `SleepStagesChart` is an `img` with a `<title>` and a `<desc>` that states the time range and each stage total. The legend is a real list.
 - `StrainRing` is a `meter` with `aria-valuenow` and `aria-valuetext`, and the animation is skipped when the user prefers reduced motion.
-- `DenseHeartRateCanvas` is keyboard operable, and its accessible name describes the visible window and its bpm range, updated as you pan and zoom.
+- `DenseHeartRateCanvas` is a focusable group whose accessible name describes the visible window and its bpm range. Keyboard pans and zooms announce the new window through a live region; the canvas itself is hidden from assistive technology.
 
 ## Development
 

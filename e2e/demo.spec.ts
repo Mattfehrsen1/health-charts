@@ -27,7 +27,10 @@ test('renders every chart', async ({ page }, testInfo) => {
     page.getByRole('img', { name: 'Sleep stages, last night' }).locator('rect'),
   ).not.toHaveCount(0);
   await expect(page.getByRole('meter', { name: 'Strain' })).toHaveAttribute('aria-valuenow', /\d/);
-  await expect(page.locator('#dense canvas')).toHaveAttribute('aria-label', /00:00 to 23:59/);
+  await expect(page.getByRole('group', { name: /^Heart rate, full day/ })).toHaveAttribute(
+    'aria-label',
+    /00:00 to 23:59/,
+  );
 
   for (const card of CARDS) {
     await testInfo.attach(card, {
@@ -64,13 +67,13 @@ test('canvas redraws at twice the resolution on a 2x screen', async ({ browser }
 });
 
 test('wheel zooms the canvas and the zoom presets update it', async ({ page }) => {
-  const canvas = page.locator('#dense canvas');
-  await canvas.hover();
+  const chart = page.getByRole('group', { name: /^Heart rate, full day/ });
+  await page.locator('#dense canvas').hover();
   await page.mouse.wheel(0, -600);
-  await expect(canvas).not.toHaveAttribute('aria-label', /00:00 to 23:59/);
+  await expect(chart).not.toHaveAttribute('aria-label', /00:00 to 23:59/);
 
   await page.getByRole('button', { name: 'Full day' }).click();
-  await expect(canvas).toHaveAttribute('aria-label', /00:00 to 23:59/);
+  await expect(chart).toHaveAttribute('aria-label', /00:00 to 23:59/);
 });
 
 test('keyboard moves through heart rate readings', async ({ page }) => {
