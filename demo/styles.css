@@ -1,0 +1,147 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --border: #e1e4e8;
+  --hc-text: #1f2328;
+  --hc-muted: #6e7781;
+  --hc-surface: #ffffff;
+  --hc-grid: rgba(110, 119, 129, 0.2);
+  --hc-line: #e5484d;
+  --hc-strain: #0b84f3;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --card: #161b22;
+  --border: #30363d;
+  --hc-text: #e6edf3;
+  --hc-muted: #8b949e;
+  --hc-surface: #21262d;
+  --hc-grid: rgba(139, 148, 158, 0.22);
+  --hc-line: #ff6369;
+  --hc-strain: #3b9eff;
+  --hc-track: rgba(139, 148, 158, 0.25);
+  --hc-zone-1: rgba(139, 148, 158, 0.1);
+  --hc-zone-2: rgba(59, 158, 255, 0.12);
+  --hc-zone-3: rgba(63, 185, 80, 0.12);
+  --hc-zone-4: rgba(255, 179, 0, 0.13);
+  --hc-zone-5: rgba(255, 99, 105, 0.15);
+  --hc-deep: #8e6cf0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--hc-text);
+  font:
+    14px/1.5 system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+header p,
+.hint {
+  margin: 4px 0 0;
+  color: var(--hc-muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+#sleep,
+#dense {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.card {
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.center {
+  display: grid;
+  place-items: center;
+  height: 240px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+input {
+  width: 6em;
+}
+
+button[aria-pressed='true'] {
+  background: var(--hc-strain);
+  border-color: var(--hc-strain);
+  color: #fff;
+}
+
+output {
+  color: var(--hc-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--hc-strain);
+  outline-offset: 2px;
+}
